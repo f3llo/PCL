@@ -1,0 +1,2 @@
+IF ( x > 0 ) RETURN x + 5
+ELSE IF [ x < 0 ] RETURN x - 5
