@@ -1,5 +1,4 @@
 import sys
-import lexer
 import parser
 
 #pc is the main code used when interpreting code
@@ -12,7 +11,7 @@ except FileNotFoundError:
     print("No such file in directory")
     sys.exit()
 
-lexer = lexer.Lexer(file.read())
+lexer = parser.Lexer(file.read())
 tokens = lexer.tokenize()
 
 parser = parser.Parser(tokens)

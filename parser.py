@@ -62,7 +62,6 @@ class Token:
         return f"Token({self.type}, {self.value}, [{self.line_number}, {self.column_number}])"
 
 class Lexer:
-
     def __init__(self, file):
         self.file = file
         self.pos = 0
@@ -95,21 +94,60 @@ class Lexer:
 
 #recursive decent parser
 
-class ParseError(Exception):
-    def __self__(self, pos, msg, *args):
-        self.pos = pos
-        self.msg = msg
-        self.args = args
-
-    def __str__(self):
-        return '%s at position %s' % (self.msg % self.args, self.pos)
-
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.pos = 0
-        self.end = len(self.tokens)-1
-        self.cache = {}
+
+    def error(self):
+        raise Exception('Error parsing input')
+
+    #start simple by parsing basic arithmatic
+    '''
+    Expression ::= Term (('+' | '-') Term)*
+    Term       ::= Factor (('*' | '/') Factor)*
+    Factor     ::= Number | '(' Expression ')'
+    Number     ::= [0-9]+
+    Check that its not the last term
+    '''
+    
+    def nextToken(self, token_type): #also commonly named eat for some reason
+        if self.token[pos] and self.token.type == token_type:
+            pos += 1
+        else:
+            self.error()
+
+    def expression(self):
+        node = self.term()
+        while self.tokens[pos] and self.tokens[pos].type in ('PLUS', 'MINUS'):
+            token = self.tokens[pos]
+            if token.type == 'PLUS':
+                self.nextToken("PLUS")
+            elif token.type == 'MINUS':
+                self.nextToken("MINUS")
+            node = ('binary_operation', node, token, self.term())
+        return node
+
+    def term(self):
+        node = self.factor()
+        while self.tokens[pos] and self.tokens[pos].type in ('MULTIPLY', 'DIVIDE'):
+            if token.type == 'PLUS':
+                self.nextToken("PLUS")
+            elif token.type == 'MINUS':
+                self.nextToken("MINUS")
+
+    def factor(self):
+        token = self.tokens[pos]
+        if token.type == "NUMBER":
+            self.nextToken("NUMBER")
+            return ('number', token)
+        elif token.type == "LPAREN":
+            self.nextToken("LPAREN")
+            node = self.expression()
+            self.nextToken("RPAREN")
+            return node
+        self.error()
 
     def parse(self):
-        pass 
+        if len(self.tokens) > 0:
+            return self.expression()
