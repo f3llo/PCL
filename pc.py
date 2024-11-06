@@ -1,6 +1,8 @@
 import sys
 import re
 
+#lexer
+
 TOKEN_TYPES = {
     'IF': r'\bIF\b',
     'ELSE': r'\bELSE\b',
@@ -85,22 +87,85 @@ class Lexer:
             
         return tokens
 
-class Parser:
+#parser
+
+class AST:
+    pass
+
+class BinOp(AST):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right
+
+class Num(AST):
+    def __init__(self, token):
+        self.token = token
+        self.value = token.value
+
+class Parser: #generates a AST
     def __init__(self, tokens):
         self.tokens = tokens
         self.pos = 0
+        self.current_token = self.tokens[self.pos]
 
     def error(self):
-        raise Exception('Error parsing input')
+        raise Exception("Invalid syntax")
     
-    def eat(self, token_type): #also commonly named eat for some reason
-        if self.token[pos] and self.token.type == token_type:
+    def eat(self, token_type):
+        if self.current_token == token_type:
             pos += 1
         else:
             self.error()
 
-class interpreter:
+    def factor(self):
+        # INT | LPAREN expr LPAREN
+        token = self.current_token
+        if token.type == "INT":
+            self.eat("INT")
+            return Num(token)
+        elif token.type == "LPAREN":
+            self.eat("LPAREN")
+            node = self.expr()
+            self.eat("RPAREN")
+            return node
+
+    def term(self):
+        # factor (*|/ factor)*
+        
+        node = self.factor()
+        while self.current_token.type in ("MULTIPLY", "DIVIDE"):
+            token = self.current_token
+            if token.type == "MULTIPLY":
+                self.eat("MULTIPLY")
+            elif token.type == "DIVIDE":
+                self.eat("DIVIDE")
+
+            node = BinOp(node, token, self.factor())
+
+        return node
+
+    def expr(self):
+        # term (+|- term)*
+    
+        node = self.term()
+        while self.current_token.type in ("ADD", "SUBTRACT"):
+            token = self.current_token
+            if token.type == "ADD":
+                self.eat("ADD")
+            elif token.type == "SUBTRACT":
+                self.eat("SUBTRACT")
+
+            node = BinOp(node, token, self.term())
+
+        return node
+
+    def parse(self):
+        return self.expr()
+
+class Interpreter:
     pass
+
 
 
 
